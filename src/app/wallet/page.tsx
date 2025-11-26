@@ -11,8 +11,6 @@ interface WalletData {
   name: string;
   type: 'cash' | 'investment' | 'card' | 'reserve';
   balance: number;
-  goal_amount?: number;
-  goal_description?: string;
   currency: string;
   created_at: string;
 }
@@ -71,8 +69,6 @@ export default function WalletPage() {
         name: formData.get('name') as string,
         type: formData.get('type') as 'cash' | 'investment' | 'card' | 'reserve',
         balance: Number(formData.get('balance')) || 0,
-        goal_amount: Number(formData.get('goal_amount')) || null,
-        goal_description: formData.get('goal_description') as string || null,
         currency: 'BRL'
       };
 
@@ -112,7 +108,6 @@ export default function WalletPage() {
   }
 
   const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0);
-  const totalGoals = wallets.reduce((sum, w) => sum + (Number(w.goal_amount) || 0), 0);
 
   if (loading) {
     return (
@@ -189,31 +184,6 @@ export default function WalletPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-white font-medium block">
-                  🎯 Meta de Valor (Opcional)
-                </label>
-                <input
-                  type="number"
-                  name="goal_amount"
-                  step="0.01"
-                  placeholder="R$ 0,00"
-                  className="w-full p-4 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder:text-white/50 border-2 border-white/30 focus:border-white/60 focus:outline-none transition-all text-lg"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-white font-medium block">
-                  📋 Descrição da Meta (Opcional)
-                </label>
-                <textarea
-                  name="goal_description"
-                  rows={3}
-                  placeholder="Ex: Juntar para viagem de férias"
-                  className="w-full p-4 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder:text-white/50 border-2 border-white/30 focus:border-white/60 focus:outline-none transition-all text-lg resize-none"
-                />
-              </div>
-
               <Button
                 type="submit"
                 disabled={creatingWallet}
@@ -272,12 +242,6 @@ export default function WalletPage() {
               <p className="text-white/60 text-xs mb-1">Carteiras</p>
               <p className="text-white font-semibold">{wallets.length}</p>
             </div>
-            <div>
-              <p className="text-white/60 text-xs mb-1">Meta Total</p>
-              <p className="text-white font-semibold">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGoals)}
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -315,8 +279,6 @@ export default function WalletPage() {
 }
 
 function WalletCard({ wallet, onDelete }: { wallet: WalletData; onDelete: () => void }) {
-  const progress = wallet.goal_amount ? (wallet.balance / wallet.goal_amount) * 100 : 0;
-  
   const typeIcons = {
     cash: '💵',
     investment: '📈',
@@ -357,24 +319,6 @@ function WalletCard({ wallet, onDelete }: { wallet: WalletData; onDelete: () => 
           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wallet.balance)}
         </p>
       </div>
-
-      {wallet.goal_amount && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-[#6C6C6C]">Meta: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wallet.goal_amount)}</p>
-            <span className="text-sm font-semibold text-[#3D73FF]">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-[#3D73FF] to-[#6AC96A] h-2 rounded-full transition-all"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-          {wallet.goal_description && (
-            <p className="text-sm text-[#6C6C6C] italic">{wallet.goal_description}</p>
-          )}
-        </div>
-      )}
     </div>
   );
 }

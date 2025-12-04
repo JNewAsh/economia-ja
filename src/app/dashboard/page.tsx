@@ -267,6 +267,101 @@ export default function DashboardPage() {
     }
   }
 
+  function openDetailedDashboard() {
+    if (!financialData) return;
+
+    const win = window.open('', '_blank', 'width=1000,height=800');
+    if (!win) return;
+
+    const total = financialData.aluguel + financialData.compras + financialData.outros;
+    const aluguelPct = total > 0 ? ((financialData.aluguel / total) * 100).toFixed(1) : '0';
+    const comprasPct = total > 0 ? ((financialData.compras / total) * 100).toFixed(1) : '0';
+    const outrosPct = total > 0 ? ((financialData.outros / total) * 100).toFixed(1) : '0';
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard Detalhado — EconomiaJÁ</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin: 24px; background:#fafafa; color:#111 }
+.card { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+h1 { margin: 0 0 8px 0 }
+.grid { display:flex; gap:16px; margin-top:12px; flex-wrap: wrap; }
+.col { flex:1; min-width: 300px; }
+.tip { margin-top:12px; padding:12px; background:#f3f7ff; border-radius:8px }
+@media (max-width: 768px) {
+  .grid { flex-direction: column; }
+  .col { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Dashboard Detalhado</h1>
+<p>Resumo individual e análise de gastos com base nos valores fornecidos.</p>
+<div class="grid">
+<div class="col">
+<canvas id="pieChart" width="400" height="300"></canvas>
+</div>
+<div class="col">
+<h3>Resumo</h3>
+<ul>
+<li>Aluguel: R$ ${financialData.aluguel.toFixed(2)} (${aluguelPct}%)</li>
+<li>Compras: R$ ${financialData.compras.toFixed(2)} (${comprasPct}%)</li>
+<li>Outros: R$ ${financialData.outros.toFixed(2)} (${outrosPct}%)</li>
+<li>Total: R$ ${total.toFixed(2)}</li>
+</ul>
+<div class="tip">
+<strong>Dica de economia:</strong>
+<p>Seu gasto com aluguel é ${aluguelPct}% do total — ${Number(aluguelPct) > 30 ? 'acima do recomendado (ideal ≤30%)' : 'dentro do recomendado'}. ${Number(aluguelPct) > 30 ? 'Considere negociar aluguel, buscar alternativas mais baratas ou ajustar outra despesa variável para aumentar sua margem de poupança.' : 'Continue mantendo esse equilíbrio!'}</p>
+</div>
+</div>
+</div>
+
+<h3 style="margin-top:18px">Sugestões de ações</h3>
+<ol>
+<li>Negociar reajuste do aluguel ou pesquisar opções em bairros próximos.</li>
+<li>Reduzir compras supérfluas com lista e planejamento.</li>
+<li>Destinar uma meta de economia mensal e automatizar aportes.</li>
+</ol>
+</div>
+
+<script>
+const ctx = document.getElementById('pieChart').getContext('2d');
+const pie = new Chart(ctx, {
+type: 'pie',
+data: {
+labels: ['Aluguel', 'Compras', 'Outros'],
+datasets: [{
+data: [${financialData.aluguel}, ${financialData.compras}, ${financialData.outros}],
+backgroundColor: ['#2d6cdf','#6fb1ef','#cfe6ff'],
+borderColor: '#fff',
+borderWidth: 2
+}]
+},
+options: {
+responsive: true,
+plugins: { 
+  legend: { position: 'bottom' },
+  title: {
+    display: true,
+    text: 'Distribuição de Despesas'
+  }
+}
+}
+});
+</script>
+</body>
+</html>`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAFAFB]">
@@ -422,15 +517,19 @@ export default function DashboardPage() {
           </div>
         </button>
 
-        {/* Gráfico de Pizza */}
+        {/* Gráfico de Pizza - Clicável para Dashboard Detalhado */}
         {financialData && (
-          <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+          <button
+            onClick={openDetailedDashboard}
+            className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl p-6 w-full text-left hover:bg-white/15 transition-all"
+          >
             <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
               <PieChart className="h-5 w-5" />
               Distribuição Financeira
+              <span className="ml-auto text-xs text-white/60">Clique para detalhes</span>
             </h3>
             <PieChartComponent data={financialData} />
-          </div>
+          </button>
         )}
       </div>
 
